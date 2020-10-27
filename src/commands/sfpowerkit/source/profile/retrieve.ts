@@ -50,6 +50,11 @@ export default class Retrieve extends SfdxCommand {
       description: messages.getMessage("deleteFlagDescription"),
       required: false
     }),
+    excludepackages: flags.boolean({
+      char: "x",
+      description: messages.getMessage("excludePackagesDescription"),
+      required: false
+    }),
     loglevel: flags.enum({
       description: "logging level for this command invocation",
       default: "info",
@@ -117,7 +122,8 @@ export default class Retrieve extends SfdxCommand {
     let syncPofles = await profileUtils.sync(
       folders,
       argProfileList || [],
-      this.flags.delete
+      this.flags.delete,
+      this.flags.excludepackages
     );
 
     let result = [];

@@ -17,7 +17,8 @@ export default class ProfileSync extends ProfileActions {
   public async sync(
     srcFolders: string[],
     profiles?: string[],
-    isdelete?: boolean
+    isdelete?: boolean,
+    isExcludePackages?: boolean
   ): Promise<{
     added: string[];
     deleted: string[];
@@ -117,6 +118,10 @@ export default class ProfileSync extends ProfileActions {
         for (var count = 0; count < metadataList.length; count++) {
           var profileObj = metadataList[count] as Profile;
 
+          if ( isExcludePackages) {
+            profileObj = this.removePackages(profileObj);
+          }
+
           profileWriter.writeProfile(
             profileObj,
             profilePathAssoc[profileObj.fullName]
@@ -138,5 +143,105 @@ export default class ProfileSync extends ProfileActions {
       });
     }
     return Promise.resolve(profileStatus);
+  }
+
+  private removePackages(profileObj: Profile): Profile {
+
+    if ( profileObj.applicationVisibilities != undefined
+        && profileObj.applicationVisibilities.length > 0) {
+      var newApplicationVisibilities = [];
+      for ( var k = 0; k < profileObj.applicationVisibilities.length; k++) {
+        var appVisibility = profileObj.applicationVisibilities[k] as ApplicationVisibility;
+        if ( appVisibility.application.indexOf("__") == -1) {
+          newApplicationVisibilities.push(appVisibility);
+        }
+      }
+      profileObj.applicationVisibilities = newApplicationVisibilities;
+    }
+
+    if ( profileObj.classAccesses != undefined
+        && profileObj.classAccesses.length > 0) {
+      var newClassAccesses = [];
+      for ( var k = 0; k < profileObj.classAccesses.length; k++) {
+        var classAccess = profileObj.classAccesses[k] as ProfileApexClassAccess;
+        if ( classAccess.apexClass.indexOf("__") == -1) {
+          newClassAccesses.push(classAccess);
+        }
+      }
+      profileObj.classAccesses = newClassAccesses;
+    }
+
+    if ( profileObj.fieldPermissions != undefined
+        && profileObj.fieldPermissions.length > 0) {
+      var newFieldPermissions = [];
+      for ( var k = 0; k < profileObj.fieldPermissions.length; k++) {
+        var fieldPermission = profileObj.fieldPermissions[k] as ProfileFieldLevelSecurity;
+        if ( fieldPermission.field.search(".*\..*__.*__c") == -1) {
+          newFieldPermissions.push(fieldPermission);
+        }
+      }
+      profileObj.fieldPermissions = newFieldPermissions;
+    }
+
+    if ( profileObj.layoutAssignments != undefined
+        && profileObj.layoutAssignments.length > 0) {
+      var newLayoutAssignments = [];
+      for ( var k = 0; k < profileObj.layoutAssignments.length; k++) {
+        var layoutAssignment = profileObj.layoutAssignments[k] as ProfileLayoutAssignments;
+        if ( layoutAssignment.layout.search(".*__.*__.*-") == -1) {
+          newLayoutAssignments.push(layoutAssignment);
+        }
+      }
+      profileObj.layoutAssignments = newLayoutAssignments;
+    }
+
+    if ( profileObj.objectPermissions != undefined
+        && profileObj.objectPermissions.length > 0) {
+      var newObjectPermissions = [];
+      for ( var k = 0; k < profileObj.objectPermissions.length; k++) {
+        var objectPermission = profileObj.objectPermissions[k] as ProfileObjectPermissions;
+        if ( objectPermission.object.search(".*__.*__.*") == -1) {
+          newObjectPermissions.push(objectPermission);
+        }
+      }
+      profileObj.objectPermissions = newObjectPermissions;
+    }
+
+    if ( profileObj.pageAccesses != undefined
+        && profileObj.pageAccesses.length > 0) {
+      var newPageAccess = [];
+      for ( var k = 0; k < profileObj.pageAccesses.length; k++) {
+        var apexPageAccess = profileObj.pageAccesses[k] as ProfileApexPageAccess;
+        if ( apexPageAccess.apexPage.search(".*__.*") == -1) {
+          newPageAccess.push(apexPageAccess);
+        }
+      }
+      profileObj.pageAccesses = newPageAccess;
+    }
+
+    if ( profileObj.recordTypeVisibilities != undefined
+        && profileObj.recordTypeVisibilities.length > 0) {
+      var newRecordTypeVisibility = [];
+      for ( var k = 0; k < profileObj.recordTypeVisibilities.length; k++) {
+        var recordTypeVisibility = profileObj.recordTypeVisibilities[k] as RecordTypeVisibility;
+        if ( recordTypeVisibility.recordType.search(".*__.*__.*\.") == -1) {
+          newRecordTypeVisibility.push(recordTypeVisibility);
+        }
+      }
+      profileObj.recordTypeVisibilities = newRecordTypeVisibility;
+    }
+
+    if ( profileObj.tabVisibilities != undefined
+        && profileObj.tabVisibilities.length > 0) {
+      var newTabVisibility = [];
+      for ( var k = 0; k < profileObj.tabVisibilities.length; k++) {
+        var tabVisibility = profileObj.tabVisibilities[k] as RecordTypeVisibility;
+        if ( tabVisibility.tab.search(".*__.*|standard-.*") == -1) {
+          newTabVisibility.push(tabVisibility);
+        }
+      }
+      profileObj.tabVisibilities = newTabVisibility;
+    }
+    return profileObj;
   }
 }

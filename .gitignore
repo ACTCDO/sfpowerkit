@@ -7,4 +7,6 @@
 /tmp
 node_modules
 .vs
+.vscode
 .sfdx
+.idea
